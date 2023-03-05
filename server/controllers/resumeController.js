@@ -21,7 +21,16 @@ resumeController.getComponent = async (req, res, next) => {
 }
 
 resumeController.createComponent = async (req, res, next) => {
-    const { id } = req.params;
+    try {
+        const {header, bullets} = req.body;
+        const { userId } = req.params;
+    
+        const query = await db.query(`INSERT INTO component (userId,header,bullets) VALUES ($1,$2,$3)`, [userId,header,bullets])
+        res.locals = query
+       
+    } catch (error) {
+        console.log(error.message)
+    }
   
 }
 /*

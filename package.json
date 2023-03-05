@@ -9,7 +9,7 @@
     "build": "webpack",
     "frontend": "webpack serve",
     "dev": "webpack serve --open & nodemon server/server.js",
-    "test": "tsc -p ./ && node ./build/server.js"
+    "test": "tsc -p ./ && node ./build/server/server.js"
   },
   "repository": {
     "type": "git",

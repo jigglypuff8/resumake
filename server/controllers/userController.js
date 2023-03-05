@@ -2,7 +2,7 @@ const db = require('../models/dbModel');
 
 const userController = {};
 
-resumeController.getUserData = async (req, res, next) => {
+userController.getUserData = async (req, res, next) => {
     
     const { id } = req.params;
     const query = await db.query(`SELECT * FROM GRID LEFT JOIN component ON grid.componentId = component.componentId`);
