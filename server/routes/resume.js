@@ -10,4 +10,6 @@ router.get('/:id',
   (req, res) => res.status(200).send(res.locals)
 );
 
+router.post('/', resumeController.createComponent, (req, res) => res.status(200).send(res.locals))
+
 module.exports = router;

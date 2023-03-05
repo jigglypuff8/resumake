@@ -6,7 +6,6 @@
   "scripts": {
     "start": "concurrently \"npx tsc --watch\" \"nodemon -q build/server/server.js\"",
     "compile": "tsc -p ./",
-    
     "build": "webpack",
     "frontend": "webpack serve",
     "dev": "webpack serve --open & nodemon server/server.js",
@@ -58,6 +57,7 @@
     "dotenv": "^16.0.3",
     "passport": "^0.6.0",
     "pg": "^8.9.0",
+    "psql": "^0.0.1",
     "react-redux": "^8.0.5"
   }
 }

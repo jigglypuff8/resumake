@@ -20,4 +20,17 @@ resumeController.getComponent = async (req, res, next) => {
     return next();
 }
 
+resumeController.createComponent = async (req, res, next) => {
+    const { id } = req.params;
+  
+}
+/*
+CREATE TABLE component (
+componentId serial NOT NULL,
+userId int NOT NULL,
+header varchar NOT NULL,
+bullets varchar NOT NULL,
+CONSTRAINT component_pk PRIMARY KEY (componentId)
+);
+*/
 module.exports = resumeController;
