@@ -14,6 +14,7 @@ CONSTRAINT user_pk PRIMARY KEY (userId)
 
 CREATE TABLE resume (
 resumeId serial NOT NULL UNIQUE,
+title varchar,
 userId int NOT NULL,
 posting_date timestamp default CURRENT_TIMESTAMP,
 CONSTRAINT resume_pk PRIMARY KEY (resumeId)
