@@ -10,6 +10,7 @@ testController.test = async (req, res, next) => {
     } catch (e) {
         console.log(e, e.message)
     }
+    return next();
 }
 
 module.exports = testController;

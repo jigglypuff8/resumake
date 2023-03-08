@@ -19,7 +19,7 @@ export interface ProfileType {
   name: string,
   location: string,
   email: string,
-  jobTitle: string,
+  jobTitle?: string,
   additional: string,
 }
 
