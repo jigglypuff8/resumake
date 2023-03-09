@@ -16,125 +16,124 @@ userController.getUserData = async (
   next: NextFunction
 ) => {
   const { id } = req.params;
-  // const query = await db.query(`SELECT * FROM GRID LEFT JOIN component ON grid.componentId = component.componentId`);
-  // const userQuery = await db.query(`
-  //     SELECT *
-  //     FROM app_user
-  //     JOIN resume ON app_user.userId = resume.userId
-  //     WHERE app_user.userId = ${id}
-  //     ORDER BY posting_date DESC
-  //     LIMIT 1`)
 
-  const initialState: initialStateType = {
-    userId: null,
-    grids: [],
-    currentResume: null,
-    resumes: null,
-    sections: [] || null,
-    profile: {
-      name: "",
-      location: "",
-      linkedin: "",
-      email: "",
-      jobTitle: "",
-      additional: "",
-    },
-  };
-  //   `SELECT app_user.userId, resume.resumeId, component.componentId, component.header, component.bullets, grid.x_coordinate, grid.y_coordinate
-  // FROM app_user
-  // LEFT JOIN resume ON app_user.userId = resume.userId
-  // LEFT JOIN component ON app_user.userId = component.userId
-  // LEFT JOIN grid ON resume.resumeId = grid.resumeId AND component.componentId = grid.componentId
-  // WHERE app_user.userId = 1`
-  const query = await db.query(`
-        SELECT 
-        app_user.userId, 
-        resume.resumeId, 
-        resume.title, 
-        component.componentId, 
-        component.header, 
-        component.bullets, 
-        grid.x_coordinate, 
-        grid.y_coordinate 
-    FROM 
-        app_user 
-        INNER JOIN resume ON app_user.userId = resume.userId 
-        INNER JOIN grid ON resume.resumeId = grid.resumeId 
-        INNER JOIN component ON grid.componentId = component.componentId
-        WHERE app_user.userId = ${id}`);
+  //get user information
+  const userQuery = await db.query(`
+      SELECT *
+      FROM app_user
+      JOIN resume ON app_user.user_id = resume.user_id
+      WHERE app_user.user_id = ${id}
+      ORDER BY last_modified DESC
+      LIMIT 1`);
 
   // check if no results were returned
-  if (query.rowCount === 0) {
+  if (userQuery.rowCount === 0) {
     console.log("No user records found");
     return res.status(400).send("No records found for that user");
   }
 
-  query.rows.forEach((row: any) => {
-    console.log(row);
-    //Set the userId in the initial state
-    initialState.userId = row.userId;
-    // if the current resume hasn't been set yet, set it to the first one in the results
-    if (!initialState.currentResume) {
-      initialState.currentResume = {
-        resumeId: row.resumeId,
-        title: row.title,
-        lastModified: row.posting_date,
+  const userData = userQuery.rows[0];
+
+  const currentResume: ResumeType = {
+    resume_id: userData.resume_id,
+    last_modified: userData.last_modified,
+    sections: [],
+    // grid: [],
+  };
+
+  const initialState: initialStateType = {
+    user_id: userData.user_id,
+    grids: [],
+    current_resume: currentResume,
+    resumes: {},
+    sections: [],
+    profile: {
+      name: userData.name,
+      location: userData.location,
+      linkedin: userData.linkedin,
+      email: userData.email,
+      job_title: "",
+      additional: "",
+    },
+  };
+
+  //get grid data
+  const gridQuery = await db.query(`
+  SELECT 
+  g.grid_id, 
+  g.resume_id, 
+  g.component_id, 
+  g.x_coordinate, 
+  g.y_coordinate, 
+  r.resume_id, 
+  c.component_id
+FROM 
+  app_user u
+  JOIN resume r ON r.user_id = u.user_id
+  JOIN grid g ON g.resume_id = r.resume_id
+  JOIN component c ON c.component_id = g.component_id
+WHERE 
+  u.user_id = ${id}
+`);
+
+  if (gridQuery.rowCount === 0) {
+    console.log("No gryd records found");
+    return res.status(400).send("No gryd data found for that user");
+  }
+
+  //add grid query information to initialState object grid property
+  gridQuery.rows.forEach((row: GridType) => {
+    initialState.grids.push(row);
+  });
+
+  //get resume and component data related to the user
+  const resumeQuery = await db.query(`
+  SELECT r.*, c.*
+    FROM resume r
+    JOIN component c ON c.user_id = r.user_id
+    WHERE r.user_id = ${id};
+`);
+
+  if (resumeQuery.rowCount === 0) {
+    console.log("No resume records found");
+    return res.status(400).send("No resume records found for that user");
+  }
+  resumeQuery.rows.forEach((row: any) => {
+    if (!initialState.resumes.hasOwnProperty(row.resume_id)) {
+      initialState.resumes[row.resume_id] = {
+        resume_id: row.resume_id,
+        last_modified: row.last_modified,
         sections: [],
       };
     }
-    //if current resume exists, update to the last modified
-    if (initialState.currentResume.lastModified < row.posting_date) {
-      initialState.currentResume = {
-        resumeId: row.resumeId,
-        title: row.title,
-        lastModified: row.posting_date,
-        sections: [],
-      };
-    }
-
-    // if the resumes array hasn't been populated yet, create an empty array for it
-    if (!initialState.resumes) {
-      initialState.resumes = [];
-    }
-    // check if the current resume ID matches the last resume added to the array, and if not, add a new resume object
-    if (
-      initialState.resumes[initialState.resumes.length - 1]?.resumeId !==
-      row.resumeId
-    ) {
-      initialState.resumes.push({
-        resumeId: row.resumeId,
-        title: row.title,
-        lastModified: row.posting_date,
-        sections: [],
-      });
-    }
-
-    // if the grids array hasn't been populated yet, create an empty array for it
-    if (!initialState.grids) {
-      initialState.grids = [];
-    }
-
-    // add a new grid object to the grids array
-    initialState.grids.push({
-      gridId: row.gridId,
-      resumeId: row.resumeId,
-      componentId: row.componentId,
-      x_coordinate: row.x_coordinate,
-      y_coordinate: row.y_coordinate,
-    });
-
-    // create a new section object and add it to the sections array
-    const section: SectionType = {
-      componentId: row.componentId,
+    const currentSection: SectionType = {
+      component_id: row.component_id,
       header: row.header,
       bullets: row.bullets,
     };
-    //add it to the sections array
-    initialState.sections.push(section);
+    initialState.resumes[row.resume_id].sections.push(currentSection);
+  });
 
-    if (initialState.currentResume.resumeId === row.resumeId) {
-      initialState.currentResume.sections.push(section);
+  //get section data
+  const sectionQuery = await db.query(
+    `SELECT * FROM component WHERE user_id = ${id}`
+  );
+
+  if (gridQuery.rowCount === 0) {
+    console.log("No component/section records found");
+    return res.status(400).send("No section records found for that user");
+  }
+  sectionQuery.rows.forEach((row: any) => {
+    const sectionData: SectionType = {
+      component_id: row.component_id,
+      header: row.header,
+      bullets: row.bullets,
+    };
+    initialState.sections.push(sectionData);
+    if (row.resume_id === currentResume.resume_id) {
+      currentResume.sections.push(sectionData);
     }
+    currentResume.sections.push(row);
   });
   console.log(initialState);
   return next();

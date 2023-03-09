@@ -1,7 +1,7 @@
 export interface ResumeType {
-  resumeId: string,
-  title: string,
-  lastModified: Date,
+  resume_id: string,
+  title?: string,
+  last_modified: Date,
   sections: SectionType[] | null //list of component database id for that resume
   // grid: GridType[] | null,
 }
@@ -11,7 +11,7 @@ export interface ResumeType {
 // } 
 
 export interface SectionType {
-  componentId: string,
+  component_id: string,
   header: string,
   bullets: string
 }
@@ -21,23 +21,23 @@ export interface ProfileType {
   location: string,
   email: string,
   linkedin: string,
-  jobTitle: string,
-  additional: string,
+  job_title?: string,
+  additional?: string,
 }
 
 export interface GridType{
-  gridId: number,
-  resumeId: number,
-  componentId: number,
+  grid_id: number,
+  resume_id: number,
+  component_id: number,
   x_coordinate: number,
   y_coordinate: number,
 }
 
 export interface initialStateType {
-  userId: number,
+  user_id: number,
   grids: GridType[],
-  currentResume: ResumeType | null,
-  resumes: ResumeType[] | null,
+  current_resume: ResumeType | null,
+  resumes: { [key:number]: ResumeType},
   sections: SectionType[] | null,
   profile: ProfileType
 }
